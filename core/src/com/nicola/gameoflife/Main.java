@@ -6,13 +6,11 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
-import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator.FreeTypeFontParameter;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 import com.badlogic.gdx.utils.Timer;
+import com.nicola.gameoflife.Game.Cell;
 
 public class Main extends ApplicationAdapter implements InputProcessor {
     public static int FIELD_WIDTH, FIELD_HEIGHT, WIDTH, HEIGHT, VERT_OFFS;
@@ -26,13 +24,16 @@ public class Main extends ApplicationAdapter implements InputProcessor {
     Timer timer;
     Timer.Task timerTask;
     private int[] mousePos = new int[2];
-    //private int[] previousDragPosition = new int[2];
+    private int[] previousDragPosition = new int[2];
+    private boolean mouseDragging = false;
+    private int mouseButtonDown = -1;
     private Color background = new Color(0.2f, 0.2f, 0.2f, 1);
     private boolean pause = true;
-    private boolean showHelp = false;
+    private boolean showHelp = true;
     //Parameters
     private int simulationSpeed = 20, speedIncrements = 2;
-    private boolean cellBorder = false;
+//    private boolean cellBorder = false;
+    private boolean drawGrid = true;
 
 
 
@@ -58,6 +59,7 @@ public class Main extends ApplicationAdapter implements InputProcessor {
         };
         timer.scheduleTask(timerTask, 0f, simulationSpeed / 100f);
         timer.stop();
+        Patterns.load();
         Gdx.input.setInputProcessor(this);
     }
 
@@ -73,16 +75,8 @@ public class Main extends ApplicationAdapter implements InputProcessor {
         for (int i = 0; i < Game.dimX; i++) {
             for (int j = 0; j < Game.dimY; j++) {
                 if (grid[i][j] == Game.ALIVE) {
-                    if (cellBorder) {
-                        shape.setColor(0, 0, 0, 1);
-                        shape.rect(i * squareSize, j * squareSize, squareSize, squareSize);
-                        shape.setColor(1, 1, 1, 1);
-                        shape.rect(i * squareSize + 1, j * squareSize + 1, squareSize - 2, squareSize - 2);
-                    } else {
-                        shape.setColor(1, 1, 1, 1);
-                        shape.rect(i * squareSize, j * squareSize, squareSize, squareSize);
-                    }
-
+                    shape.setColor(1, 1, 1, 1);
+                    shape.rect(i * squareSize, j * squareSize, squareSize, squareSize);
                 }
 
             }
@@ -102,7 +96,7 @@ public class Main extends ApplicationAdapter implements InputProcessor {
 
         font.getFont(20, Color.WHITE).draw(batch, "GENERATIONS: " + game.getGenerations(), 330, HEIGHT - 15);
 
-        font.getFont(20, Color.WHITE).draw(batch, "SPEED: " + 1f / (simulationSpeed / 100f) + " /s", 590, HEIGHT - 15);
+        font.getFont(20, Color.WHITE).draw(batch, "SPEED: " + 1f / (simulationSpeed / 100f) + " GEN/s", 590, HEIGHT - 15);
 
         batch.end();
 
@@ -112,13 +106,30 @@ public class Main extends ApplicationAdapter implements InputProcessor {
         shape.rect(0, HEIGHT-45, WIDTH, 3);
         shape.end();
 
+        // Draw the grid
+        if(drawGrid && squareSize > 1) {
+            shape.begin(ShapeType.Filled);
+            shape.setColor(Color.BLACK);
+
+            for (int i = 0; i < Game.dimX; i++) {
+                shape.rect(i * squareSize, 0, 1, Game.dimY * squareSize);
+            }
+            for (int j = 0; j < Game.dimY + 1; j++) {
+                shape.rect(0, j * squareSize, WIDTH, 1);
+            }
+
+            shape.end();
+        }
+
+
         //Draws the little square around the mouse
         if (mousePos[1] < FIELD_HEIGHT / squareSize) {
             shape.begin(ShapeType.Line);
             shape.setColor(Color.ORANGE);
-            shape.rect(mousePos[0] * squareSize, mousePos[1] * squareSize, squareSize, squareSize);
+            shape.rect(mousePos[0] * squareSize + 1, mousePos[1] * squareSize, squareSize - 1, squareSize -1);
             shape.end();
         }
+
 
         //Draws the help menu
         if (showHelp) {
@@ -126,24 +137,27 @@ public class Main extends ApplicationAdapter implements InputProcessor {
             Gdx.gl.glEnable(GL20.GL_BLEND);
             Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
             shape.begin(ShapeType.Filled);
-            shape.setColor(0, 0, 0, 0.96f);
-            shape.rect(550, topY - 14*11, 230, 14*11);
+            shape.setColor(0, 0, 0, 0.5f);
+            shape.rect(530, topY - 17*11, 260, 17*11);
             shape.end();
             Gdx.gl.glDisable(GL20.GL_BLEND);
             batch.begin();
             font.getFont(11, Color.WHITE).draw(batch,
                     "Controls\n" +
                             "\n" +
-                            "Left-Click: Toggle cell state\n" +
+                            "Left Click: Toggle cell state\n" +
+                            "Left mouse drag: Paint alive cells\n" +
+                            "Right mouse drag: Paint dead cells\n" +
                             "Spacebar: Pause\n" +
                             "R: Reset the grid\n" +
-                            "G: Generate a random grid\n" +
-                            "B: Toggle cell border\n" +
+                            "N: Generate a new random grid\n" +
+                            "G: Toggle grid\n" +
                             "Numbers: Load patterns\n" +
                             "Scroll Wheel: Control speed\n" +
-                            "Down-Arrow: Reduce grid size\n" +
-                            "Up-Arrow: Increase grid size\n",
-                    570, topY - 16);
+                            "Down Arrow: Reduce grid size\n" +
+                            "Up Arrow: Increase grid size\n\n" +
+                            "H: Show/Hide this menu",
+                    550, topY - 16);
 
             batch.end();
 
@@ -173,24 +187,20 @@ public class Main extends ApplicationAdapter implements InputProcessor {
             pause = true;
         }
         //Generate a random grid
-        else if (keycode == Input.Keys.G) {
+        else if (keycode == Input.Keys.N) {
             game.generateRandom(15);
             timer.stop();
             pause = true;
         }
-        //Loads pattern one
-        else if (keycode == Input.Keys.NUM_1) {
-            timer.stop();
-            pause = true;
-            game.setPattern(Patterns.pattern_1, Patterns.p1X, Patterns.p1Y);
+        //Load pattern
+        else if (keycode >= Input.Keys.NUM_0 && keycode <= Input.Keys.NUM_9){
+            Pattern p = Patterns.getPattern(keycode);
+            if(p != null) {
+                timer.stop();
+                pause = true;
+                game.setPattern(p);
+            }
         }
-        //Loads pattern 2
-        else if (keycode == Input.Keys.NUM_2) {
-            timer.stop();
-            pause = true;
-            game.setPattern(Patterns.pattern_2, Patterns.p2X, Patterns.p2Y);
-        }
-
         //Increases the grid size
         else if (keycode == Input.Keys.UP) {
             pause = true;
@@ -211,10 +221,9 @@ public class Main extends ApplicationAdapter implements InputProcessor {
 
         }
 
-
-        //Toggle the cell border
-        else if (keycode == Input.Keys.B) {
-            cellBorder = !cellBorder;
+        // Toggle the background grid
+        else if (keycode == Input.Keys.G) {
+            drawGrid = !drawGrid;
         }
         //Toggles the help menu
         else if (keycode == Input.Keys.H) {
@@ -235,9 +244,10 @@ public class Main extends ApplicationAdapter implements InputProcessor {
 
     @Override
     public boolean touchDown(int screenX, int screenY, int pointer, int button) {
+        mouseButtonDown = button;
         if (pause) {
             if (button == Input.Buttons.LEFT && screenY > VERT_OFFS) {
-                game.reverseCell((screenX / squareSize), (FIELD_HEIGHT - (screenY - VERT_OFFS)) / squareSize);
+                game.reverseCell(getCellFromScreenCoords(screenX, screenY));
             }
 
         }
@@ -246,29 +256,50 @@ public class Main extends ApplicationAdapter implements InputProcessor {
 
     @Override
     public boolean touchUp(int screenX, int screenY, int pointer, int button) {
+        mouseDragging = false;
+        mouseButtonDown = -1;
         return false;
     }
 
     @Override
     public boolean touchDragged(int screenX, int screenY, int pointer) {
-        /*
-        if(pause) {
-            if (screenY > VERT_OFFS && screenY < HEIGHT && screenX > 0 && screenX < WIDTH) {
-                if(previousDragPosition[0] != screenX/squareSize || previousDragPosition[1] != FIELD_HEIGHT - (screenY-VERT_OFFS) / squareSize)
-                game.reverseCell((screenX / squareSize), (FIELD_HEIGHT - (screenY-VERT_OFFS)) / squareSize);
-
+        System.out.println(pointer);
+        Cell c = getCellFromScreenCoords(screenX, screenY);
+        mousePos[0] = c.x();
+        mousePos[1] = c.y();
+        if(!pause) {
+            return false;
+        }
+        boolean newCellState = mouseButtonDown == Input.Buttons.LEFT;
+        // If it's not the first event of a drag
+        if(mouseDragging){
+            int fromX = Math.min(previousDragPosition[0], screenX);
+            int toX = Math.max(previousDragPosition[0], screenX);
+            for(int x = fromX; x <= toX; x++){
+                int y = Math.round(Utils.getYFromXOfLine(previousDragPosition[0], previousDragPosition[1], screenX, screenY, x));
+                paintOnCoords(x, y, newCellState);
             }
-            previousDragPosition[0] = screenX / squareSize;
-            previousDragPosition[1] = FIELD_HEIGHT - (screenY-VERT_OFFS) / squareSize;
+            int fromY = Math.min(previousDragPosition[1], screenY);
+            int toY = Math.max(previousDragPosition[1], screenY);
+            for(int y = fromY; y < toY; y++){
+                int x = Math.round(Utils.getXFromYOfLine(previousDragPosition[0], previousDragPosition[1], screenX, screenY, y));
+                paintOnCoords(x, y, newCellState);
+            }
+        }else{
+            paintOnCoords(screenX, screenY, newCellState);
+        }
+        previousDragPosition[0] = screenX;
+        previousDragPosition[1] = screenY;
+        mouseDragging = true;
 
-        }*/
         return false;
     }
 
     @Override
     public boolean mouseMoved(int screenX, int screenY) {
-        mousePos[0] = (screenX / squareSize);
-        mousePos[1] = (FIELD_HEIGHT - (screenY - VERT_OFFS)) / squareSize;
+        Cell c = getCellFromScreenCoords(screenX, screenY);
+        mousePos[0] = c.x();
+        mousePos[1] = c.y();
         return false;
     }
 
@@ -290,4 +321,18 @@ public class Main extends ApplicationAdapter implements InputProcessor {
         }
         return false;
     }
+
+    private Cell getCellFromScreenCoords(int screenX, int screenY){
+        int cellX = screenX / squareSize;
+        int cellY = (FIELD_HEIGHT - (screenY - VERT_OFFS)) / squareSize;
+        return new Cell(cellX, cellY);
+    }
+
+    private void paintOnCoords(int x, int y, boolean alive){
+        Cell c = getCellFromScreenCoords(x, y);
+        if(c.x() > -1 && c.x() < Game.dimX && c.y() > -1 && c.y() < Game.dimY){
+            game.setCell(c, alive);
+        }
+    }
+
 }

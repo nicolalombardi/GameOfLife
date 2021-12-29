@@ -9,10 +9,12 @@ import java.util.Random;
 public class Game {
     public static final int ALIVE = 1, DEAD = 0;
     public static int dimX, dimY;
-    private int population[][];
-    private int previusGenPop[][];
+    private int[][] population;
+    private int[][] previusGenPop;
     private int generations = 0;
     private boolean isChanging = false;
+
+    public record Cell(int x, int y) { }
 
     public Game(int x, int y) {
         dimX = x;
@@ -21,7 +23,7 @@ public class Game {
     }
 
     public void update() {
-        int temp[][] = new int[dimX][dimY];
+        int[][] temp = new int[dimX][dimY];
         for (int i = 0; i < dimX; i++) {
             for (int j = 0; j < dimY; j++) {
                 if (population[i][j] == ALIVE) {
@@ -44,10 +46,7 @@ public class Game {
             }
         }
         population = temp.clone();
-        if (Arrays.equals(population, previusGenPop)) {
-            isChanging = false;
-        } else
-            isChanging = true;
+        isChanging = !Arrays.deepEquals(population, previusGenPop);
 
         previusGenPop = population.clone();
         generations++;
@@ -57,8 +56,12 @@ public class Game {
         return population;
     }
 
-    public void reverseCell(int x, int y) {
-        population[x][y] = 1 - population[x][y];
+    public void reverseCell(Cell cell) {
+        population[cell.x][cell.y] = 1 - population[cell.x][cell.y];
+    }
+
+    public void setCell(Cell cell, boolean alive){
+        population[cell.x][cell.y] = alive ? 1 : 0;
     }
 
     public void reset() {
@@ -79,13 +82,15 @@ public class Game {
         }
     }
 
-    public void setPattern(int[][] pattern, int x, int y) {
+    public void setPattern(Pattern p) {
+        int x = p.getDimX();
+        int y = p.getDimY();
         reset();
         int offX = dimX / 2;
         int offY = dimY / 2;
         for (int i = 0; i < y; i++) {
             for (int j = 0; j < x; j++) {
-                population[i + offX - x / 2][j + offY - y / 2] = pattern[j][i];
+                population[j + offX - x / 2][i + offY - y / 2] = p.getGrid()[y - 1 - i][j];
             }
         }
 
@@ -123,46 +128,17 @@ public class Game {
     //Returns the number of neighbour of a given cell
     private int neighbours(int x, int y) {
         int neighbourCount = 0;
-
-        //Left
-        if (x != 0)
-            if (population[x - 1][y] == ALIVE)
-                neighbourCount++;
-
-        //Top-left
-        if (x != 0 && y != 0)
-            if (population[x - 1][y - 1] == ALIVE)
-                neighbourCount++;
-
-        //Up
-        if (y != 0)
-            if (population[x][y - 1] == ALIVE)
-                neighbourCount++;
-
-        //Top-right
-        if (x != dimX - 1 && y != 0)
-            if (population[x + 1][y - 1] == ALIVE)
-                neighbourCount++;
-
-        //Right
-        if (x != dimX - 1)
-            if (population[x + 1][y] == ALIVE)
-                neighbourCount++;
-
-        //Bottom-right
-        if (x != dimX - 1 && y != dimY - 1)
-            if (population[x + 1][y + 1] == ALIVE)
-                neighbourCount++;
-
-        //Down
-        if (y != dimY - 1)
-            if (population[x][y + 1] == ALIVE)
-                neighbourCount++;
-
-        //Bottom-left
-        if (x != 0 && y != dimY - 1)
-            if (population[x - 1][y + 1] == ALIVE)
-                neighbourCount++;
+        for (int i = x-1; i <= x+1; i++){
+            for (int j = y-1; j <= y+1; j++) {
+                if(i != x || j != y) {
+                    if (i >= 0 && i < dimX && j >= 0 && j < dimY) {
+                        if (population[i][j] == ALIVE) {
+                            neighbourCount++;
+                        }
+                    }
+                }
+            }
+        }
 
         //Return the neighbours count
         return neighbourCount;
