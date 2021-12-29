@@ -143,20 +143,22 @@ public class Main extends ApplicationAdapter implements InputProcessor {
             Gdx.gl.glDisable(GL20.GL_BLEND);
             batch.begin();
             font.getFont(11, Color.WHITE).draw(batch,
-                    "Controls\n" +
-                            "\n" +
-                            "Left Click: Toggle cell state\n" +
-                            "Left mouse drag: Paint alive cells\n" +
-                            "Right mouse drag: Paint dead cells\n" +
-                            "Spacebar: Pause\n" +
-                            "R: Reset the grid\n" +
-                            "N: Generate a new random grid\n" +
-                            "G: Toggle grid\n" +
-                            "Numbers: Load patterns\n" +
-                            "Scroll Wheel: Control speed\n" +
-                            "Down Arrow: Reduce grid size\n" +
-                            "Up Arrow: Increase grid size\n\n" +
-                            "H: Show/Hide this menu",
+                    """
+                            Controls
+
+                            Left Click: Toggle cell state
+                            Left mouse drag: Paint alive cells
+                            Right mouse drag: Paint dead cells
+                            Spacebar: Pause
+                            R: Reset the grid
+                            N: Generate a new random grid
+                            G: Toggle grid
+                            Numbers: Load patterns
+                            Scroll Wheel: Control speed
+                            Down Arrow: Reduce grid size
+                            Up Arrow: Increase grid size
+
+                            H: Show/Hide this menu""",
                     550, topY - 16);
 
             batch.end();

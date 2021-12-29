@@ -1,7 +1,7 @@
 package com.nicola.gameoflife;
 
 public class Pattern {
-    private int grid[][];
+    private int[][] grid;
     private int dimX;
     private int dimY;
 
