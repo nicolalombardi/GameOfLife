@@ -14,7 +14,22 @@ public class Game {
     private int generations = 0;
     private boolean isChanging = false;
 
-    public record Cell(int x, int y) { }
+    public static class Cell {
+        private int x, y;
+
+        public Cell(int x, int y) {
+            this.x = x;
+            this.y = y;
+        }
+
+        public int getX() {
+            return x;
+        }
+
+        public int getY() {
+            return y;
+        }
+    }
 
     public Game(int x, int y) {
         dimX = x;

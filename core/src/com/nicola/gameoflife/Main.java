@@ -143,22 +143,20 @@ public class Main extends ApplicationAdapter implements InputProcessor {
             Gdx.gl.glDisable(GL20.GL_BLEND);
             batch.begin();
             font.getFont(11, Color.WHITE).draw(batch,
-                    """
-                            Controls
-
-                            Left Click: Toggle cell state
-                            Left mouse drag: Paint alive cells
-                            Right mouse drag: Paint dead cells
-                            Spacebar: Pause
-                            R: Reset the grid
-                            N: Generate a new random grid
-                            G: Toggle grid
-                            Numbers: Load patterns
-                            Scroll Wheel: Control speed
-                            Down Arrow: Reduce grid size
-                            Up Arrow: Increase grid size
-
-                            H: Show/Hide this menu""",
+                    "Controls\n" +
+                            "\n" +
+                            "Left Click: Toggle cell state\n" +
+                            "Left mouse drag: Paint alive cells\n" +
+                            "Right mouse drag: Paint dead cells\n" +
+                            "Spacebar: Pause\n" +
+                            "R: Reset the grid\n" +
+                            "N: Generate a new random grid\n" +
+                            "G: Toggle grid\n" +
+                            "Numbers: Load patterns\n" +
+                            "Scroll Wheel: Control speed\n" +
+                            "Down Arrow: Reduce grid size\n" +
+                            "Up Arrow: Increase grid size\n\n" +
+                            "H: Show/Hide this menu",
                     550, topY - 16);
 
             batch.end();
@@ -265,10 +263,9 @@ public class Main extends ApplicationAdapter implements InputProcessor {
 
     @Override
     public boolean touchDragged(int screenX, int screenY, int pointer) {
-        System.out.println(pointer);
         Cell c = getCellFromScreenCoords(screenX, screenY);
-        mousePos[0] = c.x();
-        mousePos[1] = c.y();
+        mousePos[0] = c.getX();
+        mousePos[1] = c.getY();
         if(!pause) {
             return false;
         }
@@ -300,8 +297,8 @@ public class Main extends ApplicationAdapter implements InputProcessor {
     @Override
     public boolean mouseMoved(int screenX, int screenY) {
         Cell c = getCellFromScreenCoords(screenX, screenY);
-        mousePos[0] = c.x();
-        mousePos[1] = c.y();
+        mousePos[0] = c.getX();
+        mousePos[1] = c.getY();
         return false;
     }
 
@@ -332,7 +329,7 @@ public class Main extends ApplicationAdapter implements InputProcessor {
 
     private void paintOnCoords(int x, int y, boolean alive){
         Cell c = getCellFromScreenCoords(x, y);
-        if(c.x() > -1 && c.x() < Game.dimX && c.y() > -1 && c.y() < Game.dimY){
+        if(c.getX() > -1 && c.getX() < Game.dimX && c.getY() > -1 && c.getY() < Game.dimY){
             game.setCell(c, alive);
         }
     }
