@@ -6,6 +6,10 @@ Game of Life implementation written in Java using libGDX.
 - Configurable simulation speed
 - Included patterns
 - Looks good!
+
+## Run it
+Either download the .jar file in the releases section or compile the gradle project from the sources.
+
 ## Screenshots
 <p>
 <img src="https://i.imgur.com/urWYSdc.png" style="display:block;" width="100%">
